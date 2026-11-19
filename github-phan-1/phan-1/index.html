@@ -1219,15 +1219,21 @@ function placeOrder() {
     const btn = $("#sendBtn"); btn.disabled = true; btn.textContent = "Đang gửi…";
     if (!canSendOnline()) { btn.disabled = false; btn.textContent = needBill ? "Gửi xác nhận đơn hàng" : "Đặt hàng"; fallback("Web đang ở chế độ xem thử nên chưa gửi tự động được."); cart = []; saveCart(); renderCart(); return; }
     try {
-      const fd = new FormData();
-      fd.append("form-name", "don-hang-quan-ao"); fd.append("ma-don", code); fd.append("ho-ten", d.name); fd.append("so-dien-thoai", d.phone); fd.append("tiktok-instagram", d.social);
-      fd.append("dia-chi", `${d.addr}, ${d.city}`); fd.append("thanh-toan", shipLabel + " | " + payLabel); fd.append("so-tien-da-chuyen", payNow ? vnd(payNow) : "COD"); fd.append("noi-dung-ck", payNow ? ck : "-");
-      fd.append("san-pham", itemLines); fd.append("tien-hang", vnd(t.total)); fd.append("ghi-chu", d.note || ""); fd.append("toan-bo-don", text);
-      const billFile = bill ? await shrinkBill(bill) : null; if (billFile) fd.append("anh-chuyen-khoan", billFile);
-      const res = await fetch("/", { method: "POST", body: fd });
-      if (!res.ok) throw new Error("HTTP " + res.status);
+      const billFile = bill ? await shrinkBill(bill) : null;
       const items = t.items.filter(x => !x.ord).map(x => ({ sku: x.sku, color: x.p.colors[x.ci][0], size: x.p.sizes[x.si], q: x.q }));
-      await emailOrder(`👗 Đơn mới #${code} – ${d.name} – ${payNow ? "đã CK " + vnd(payNow) : "COD " + vnd(c.grand)}`, code, fields, billFile, items);
+      // 1) Gửi email + trừ tồn kho qua Google Apps Script (kênh chính)
+      const mailed = await emailOrder(`👗 Đơn mới #${code} – ${d.name} – ${payNow ? "đã CK " + vnd(payNow) : "COD " + vnd(c.grand)}`, code, fields, billFile, items);
+      // 2) Lưu thêm vào Netlify Forms nếu có (không bắt buộc – lỗi thì bỏ qua)
+      let saved = false;
+      try {
+        const fd = new FormData();
+        fd.append("form-name", "don-hang-quan-ao"); fd.append("ma-don", code); fd.append("ho-ten", d.name); fd.append("so-dien-thoai", d.phone); fd.append("tiktok-instagram", d.social);
+        fd.append("dia-chi", `${d.addr}, ${d.city}`); fd.append("thanh-toan", shipLabel + " | " + payLabel); fd.append("so-tien-da-chuyen", payNow ? vnd(payNow) : "COD"); fd.append("noi-dung-ck", payNow ? ck : "-");
+        fd.append("san-pham", itemLines); fd.append("tien-hang", vnd(t.total)); fd.append("ghi-chu", d.note || ""); fd.append("toan-bo-don", text);
+        if (billFile) fd.append("anh-chuyen-khoan", billFile);
+        const res = await fetch("/", { method: "POST", body: fd }); saved = res.ok;
+      } catch (e) { saved = false; }
+      if (!mailed && !saved) throw new Error("send failed");
       t.items.forEach(x => { if (!x.ord && x.p.stock && x.p.stock[x.ci] && x.p.stock[x.ci][x.si] < 99) x.p.stock[x.ci][x.si] = Math.max(0, x.p.stock[x.ci][x.si] - x.q); });
       $("#sheet").querySelector(".co").outerHTML = `<div class="done-ok"><div class="ic">🤍</div><h3>Đặt hàng thành công</h3><p>Mã đơn <b>${code}</b>. Shop sẽ kiểm tra và nhắn xác nhận qua TikTok/Instagram <b>${esc(d.social)}</b>.</p><p>${t.hasOrder ? "Hàng order có sau 5–7 ngày." : "Hàng có sẵn, giao 2–4 ngày."}</p><button class="btn" data-close style="margin-top:18px">Tiếp tục mua sắm</button></div>`;
       cart = []; saveCart(); renderCart();
