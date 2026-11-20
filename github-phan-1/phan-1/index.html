@@ -340,6 +340,7 @@
   .policy h4{font-size:15.5px;margin:18px 0 6px}
   .policy ul,.policy ol{padding-left:20px;margin:4px 0 8px}
   .policy li{margin:3px 0}
+  #mainImg iframe.gdv{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
   .co-policy{margin:-4px 0 12px;font-size:12.5px;color:var(--muted)}
   .co-policy summary{cursor:pointer;list-style:none}
   .co-policy .policy{font-size:13px;color:var(--ink);max-height:300px;overflow:auto;border:1px solid #E6DED4;border-radius:8px;padding:6px 14px;margin-top:8px;background:#fff}
@@ -707,6 +708,10 @@ const family = name => {
   if (/xám/.test(s)) return "Xám"; if (/nâu/.test(s)) return "Nâu"; if (/vàng/.test(s)) return "Vàng"; if (/trắng|kem|be|mây/.test(s)) return "Trắng & Be"; return "Hoạ tiết";
 };
 const FAMILY_SW = { "Đen": "#2B2826", "Trắng & Be": "#EDE3D4", "Hồng": "#F2C9CC", "Xanh": "#8FB0CC", "Nâu": "#8B6650", "Xám": "#9A9590", "Đỏ": "#7A2E37", "Vàng": "#F1DE9C", "Hoạ tiết": "radial-gradient(circle at 30% 32%,#fff 0 2px,transparent 2.5px),radial-gradient(circle at 70% 66%,#fff 0 2px,transparent 2.5px),#E8C9C0" };
+const HEX_GUESS = [[/caro/, "#B07A5A", "caro"], [/hoa|họa|hoạ|tiết/, "#F1E6DC", "hoa"], [/đen/, "#2B2826"], [/trắng|mây/, "#F8F6F2"], [/kem|vanilla/, "#F3E8CF"], [/be/, "#E9DCC6"],
+  [/hồng/, "#F4C9D0"], [/đỏ/, "#B23A3A"], [/cam/, "#F2A66B"], [/vàng/, "#F6DF7A"], [/tiffany|mint|bạc hà/, "#9ED9CF"], [/xanh lá|olive|rêu/, "#8FA67A"], [/xanh/, "#BFD9EE"], [/tím/, "#C7B3DE"],
+  [/nâu|mocha|brown/, "#8A6A55"], [/xám|ghi/, "#9A9590"]];
+const colorOf = name => { const s = name.toLowerCase(); const g = HEX_GUESS.find(x => x[0].test(s)); return g ? [name, g[1], 0, g[2]].slice(0, g[2] ? 4 : 2) : [name, "#D9CFC4"]; };
 const shade = (hex, amt) => { const n = parseInt(hex.slice(1), 16); const c = [n >> 16, n >> 8 & 255, n & 255].map(v => Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt)); return `rgb(${c.join(",")})`; };
 
 /* ================= HÌNH MINH HOẠ (thay bằng ảnh thật khi có) ================= */
@@ -737,11 +742,13 @@ function garment(shape, c, cls = "g") {
 
 /* ảnh thật: anh/MÃ_màu.jpg – tự hiện nếu có file, không có thì giữ hình minh hoạ */
 const BAD = new Set();
-const nImg = (p, ci) => +((IMAGES[p.sku] || {})[ci] || 0);
+const GD = (id, w = 1200) => `https://lh3.googleusercontent.com/d/${id}=w${w}`;   // ảnh Google Drive (SP thêm từ Sheet)
+const extImgs = (p, ci) => { const a = (p.ext.imgs[ci] || []); return a.length ? a : p.ext.chung.length ? p.ext.chung : Object.values(p.ext.imgs)[0] || []; };
+const nImg = (p, ci) => p.ext ? extImgs(p, ci).length : +((IMAGES[p.sku] || {})[ci] || 0);
 /* Ảnh nằm ở thư mục con khác (do tải lên GitHub thành nhiều phần): tên file → thư mục chứa "anh" */
 const ANH_DIR = /*ANHDIR*/{"SP007_1_10.jpg":"phan-2","SP006_clip_1.mp4":"phan-2","SP010_1_2.jpg":"phan-2","SP008_0_10.jpg":"phan-2","SP009_0_11.jpg":"phan-2","SP009_1_6.jpg":"phan-2","SP009_0_5.jpg":"phan-2","SP009_0_4.jpg":"phan-2","SP007_1_3.jpg":"phan-2","SP007_1_6.jpg":"phan-2","SP007_1_5.jpg":"phan-2","SP010_1_10.jpg":"phan-2","SP009_0_1.jpg":"phan-2","SP008_0_8.jpg":"phan-2","SP010_1_1.jpg":"phan-2","SP010_1_clip.jpg":"phan-2","SP007_1_8.jpg":"phan-2","SP008_bangsize.jpg":"phan-2","SP009_1_12.jpg":"phan-2","SP008_0_6.jpg":"phan-2","SP006_bangsize.jpg":"phan-2","SP009_1_14.jpg":"phan-2","SP009_1_clip.jpg":"phan-2","SP009_1_13.jpg":"phan-2","SP007_0_4.jpg":"phan-2","SP010_1_7.jpg":"phan-2","SP009_0_2.jpg":"phan-2","SP009_bangsize.jpg":"phan-2","SP009_1_2.jpg":"phan-2","SP007_0_7.jpg":"phan-2","SP008_0_2.jpg":"phan-2","SP009_0_clip.jpg":"phan-2","SP006_2_6.jpg":"phan-2","SP008_0_5.jpg":"phan-2","SP008_0_4.jpg":"phan-2","SP007_0_5.jpg":"phan-2","SP008_0_13.jpg":"phan-2","SP010_1_8.jpg":"phan-2","SP009_1_7.jpg":"phan-2","SP010_0_1.jpg":"phan-2","SP007_1_2.jpg":"phan-2","SP010_1_9.jpg":"phan-2","SP009_0_3.jpg":"phan-2","SP010_1_6.jpg":"phan-2","SP010_0_7.jpg":"phan-2","SP010_1_4.jpg":"phan-2","SP008_0_12.jpg":"phan-2","SP009_1_10.jpg":"phan-2","SP006_clip_1.jpg":"phan-2","SP007_0_3.jpg":"phan-2","SP009_1_3.jpg":"phan-2","SP010_0_4.jpg":"phan-2","SP007_bangsize.jpg":"phan-2","SP008_0_7.jpg":"phan-2","SP009_0_14.jpg":"phan-2","SP008_0_1.jpg":"phan-2","SP010_1_clip.mp4":"phan-2","SP009_0_10.jpg":"phan-2","SP009_1_1.jpg":"phan-2","SP009_1_5.jpg":"phan-2","SP009_0_8.jpg":"phan-2","SP009_1_4.jpg":"phan-2","SP009_0_clip.mp4":"phan-2","SP009_0_15.jpg":"phan-2","SP009_0_13.jpg":"phan-2","SP009_1_9.jpg":"phan-2","SP007_1_1.jpg":"phan-2","SP007_1_4.jpg":"phan-2","SP006_2_5.jpg":"phan-2","SP007_0_1.jpg":"phan-2","SP010_0_3.jpg":"phan-2","SP007_0_2.jpg":"phan-2","SP009_1_clip.mp4":"phan-2","SP009_1_11.jpg":"phan-2","SP009_0_9.jpg":"phan-2","SP010_0_6.jpg":"phan-2","SP007_1_9.jpg":"phan-2","SP009_0_12.jpg":"phan-2","SP009_0_7.jpg":"phan-2","SP010_0_5.jpg":"phan-2","SP010_0_2.jpg":"phan-2","SP010_1_3.jpg":"phan-2","SP010_1_5.jpg":"phan-2","SP008_0_3.jpg":"phan-2","SP009_1_8.jpg":"phan-2","SP008_0_11.jpg":"phan-2","SP009_0_6.jpg":"phan-2","SP008_0_9.jpg":"phan-2","SP007_1_7.jpg":"phan-2","SP010_0_8.jpg":"phan-2","SP007_0_6.jpg":"phan-2","SP014_0_13.jpg":"phan-3","SP011_2_8.jpg":"phan-3","SP011_0_2.jpg":"phan-3","SP014_0_14.jpg":"phan-3","SP012_0_9.jpg":"phan-3","SP012_1_8.jpg":"phan-3","SP011_2_5.jpg":"phan-3","SP013_1_1.jpg":"phan-3","SP011_1_3.jpg":"phan-3","SP012_2_clip.mp4":"phan-3","SP014_0_3.jpg":"phan-3","SP012_1_10.jpg":"phan-3","SP013_0_2.jpg":"phan-3","SP013_2_2.jpg":"phan-3","SP012_1_4.jpg":"phan-3","SP013_0_1.jpg":"phan-3","SP013_2_1.jpg":"phan-3","SP014_0_4.jpg":"phan-3","SP013_2_7.jpg":"phan-3","SP011_0_6.jpg":"phan-3","SP011_2_4.jpg":"phan-3","SP011_0_5.jpg":"phan-3","SP012_0_6.jpg":"phan-3","SP012_1_1.jpg":"phan-3","SP014_0_10.jpg":"phan-3","SP013_2_5.jpg":"phan-3","SP012_chung_1.jpg":"phan-3","SP012_2_1.jpg":"phan-3","SP012_0_4.jpg":"phan-3","SP012_0_3.jpg":"phan-3","SP011_2_3.jpg":"phan-3","SP014_0_16.jpg":"phan-3","SP013_2_6.jpg":"phan-3","SP011_0_4.jpg":"phan-3","SP011_1_7.jpg":"phan-3","SP012_2_5.jpg":"phan-3","SP012_bangsize.jpg":"phan-3","SP012_1_5.jpg":"phan-3","SP012_2_2.jpg":"phan-3","SP011_1_2.jpg":"phan-3","SP012_0_7.jpg":"phan-3","SP014_0_12.jpg":"phan-3","SP010_bangsize.jpg":"phan-3","SP012_2_7.jpg":"phan-3","SP014_0_7.jpg":"phan-3","SP012_1_2.jpg":"phan-3","SP014_0_9.jpg":"phan-3","SP012_0_2.jpg":"phan-3","SP012_2_6.jpg":"phan-3","SP011_2_9.jpg":"phan-3","SP012_1_7.jpg":"phan-3","SP014_0_5.jpg":"phan-3","SP011_1_1.jpg":"phan-3","SP011_2_1.jpg":"phan-3","SP011_0_1.jpg":"phan-3","SP013_0_3.jpg":"phan-3","SP014_0_8.jpg":"phan-3","SP012_2_clip.jpg":"phan-3","SP012_1_6.jpg":"phan-3","SP014_0_2.jpg":"phan-3","SP011_bangsize.jpg":"phan-3","SP012_1_3.jpg":"phan-3","SP012_0_5.jpg":"phan-3","SP012_2_4.jpg":"phan-3","SP012_0_8.jpg":"phan-3","SP012_2_9.jpg":"phan-3","SP011_2_6.jpg":"phan-3","SP013_1_2.jpg":"phan-3","SP011_0_3.jpg":"phan-3","SP013_2_3.jpg":"phan-3","SP011_0_8.jpg":"phan-3","SP013_2_4.jpg":"phan-3","SP012_2_10.jpg":"phan-3","SP011_2_10.jpg":"phan-3","SP013_bangsize.jpg":"phan-3","SP014_0_1.jpg":"phan-3","SP014_0_11.jpg":"phan-3","SP014_1_1.jpg":"phan-3","SP011_1_5.jpg":"phan-3","SP013_3_1.jpg":"phan-3","SP011_2_2.jpg":"phan-3","SP011_1_6.jpg":"phan-3","SP011_2_7.jpg":"phan-3","SP012_2_8.jpg":"phan-3","SP011_0_7.jpg":"phan-3","SP012_1_9.jpg":"phan-3","SP012_2_3.jpg":"phan-3","SP012_0_1.jpg":"phan-3","SP014_0_6.jpg":"phan-3","SP011_1_4.jpg":"phan-3","SP014_0_15.jpg":"phan-3","SP018_0_4.jpg":"phan-4","SP017_0_6.jpg":"phan-4","SP016_bangsize.jpg":"phan-4","SP015_0_1.jpg":"phan-4","SP015_1_5.jpg":"phan-4","SP015_1_3.jpg":"phan-4","SP018_clip_1.mp4":"phan-4","SP016_0_1.jpg":"phan-4","SP018_2_1.jpg":"phan-4","SP018_bangsize.jpg":"phan-4","SP015_1_9.jpg":"phan-4","SP017_2_2.jpg":"phan-4","SP017_0_11.jpg":"phan-4","SP019_0_5.jpg":"phan-4","SP017_0_12.jpg":"phan-4","SP018_0_2.jpg":"phan-4","SP014_bangsize.jpg":"phan-4","SP019_0_2.jpg":"phan-4","SP015_clip_1.jpg":"phan-4","SP015_0_9.jpg":"phan-4","SP014_1_10.jpg":"phan-4","SP014_1_5.jpg":"phan-4","SP019_0_4.jpg":"phan-4","SP016_0_2.jpg":"phan-4","SP017_2_3.jpg":"phan-4","SP017_clip_1.jpg":"phan-4","SP015_0_4.jpg":"phan-4","SP017_1_5.jpg":"phan-4","SP018_0_3.jpg":"phan-4","SP015_0_3.jpg":"phan-4","SP018_0_10.jpg":"phan-4","SP018_clip_2.mp4":"phan-4","SP018_3_1.jpg":"phan-4","SP015_0_2.jpg":"phan-4","SP018_0_5.jpg":"phan-4","SP018_clip_2.jpg":"phan-4","SP019_0_1.jpg":"phan-4","SP017_0_5.jpg":"phan-4","SP015_0_8.jpg":"phan-4","SP014_1_4.jpg":"phan-4","SP017_0_7.jpg":"phan-4","SP017_0_13.jpg":"phan-4","SP018_0_1.jpg":"phan-4","SP015_1_7.jpg":"phan-4","SP015_0_6.jpg":"phan-4","SP017_1_2.jpg":"phan-4","SP019_0_3.jpg":"phan-4","SP015_1_10.jpg":"phan-4","SP014_1_6.jpg":"phan-4","SP015_clip_1.mp4":"phan-4","SP014_clip_1.mp4":"phan-4","SP015_1_12.jpg":"phan-4","SP017_bangsize.jpg":"phan-4","SP016_0_3.jpg":"phan-4","SP017_0_8.jpg":"phan-4","SP014_1_8.jpg":"phan-4","SP017_clip_1.mp4":"phan-4","SP015_1_13.jpg":"phan-4","SP018_0_9.jpg":"phan-4","SP018_1_1.jpg":"phan-4","SP017_2_1.jpg":"phan-4","SP018_0_7.jpg":"phan-4","SP017_1_3.jpg":"phan-4","SP014_1_7.jpg":"phan-4","SP015_bangsize.jpg":"phan-4","SP017_0_10.jpg":"phan-4","SP018_0_6.jpg":"phan-4","SP015_0_7.jpg":"phan-4","SP017_0_3.jpg":"phan-4","SP017_0_9.jpg":"phan-4","SP018_clip_1.jpg":"phan-4","SP014_1_11.jpg":"phan-4","SP019_bangsize.jpg":"phan-4","SP017_1_1.jpg":"phan-4","SP015_1_8.jpg":"phan-4","SP017_0_2.jpg":"phan-4","SP014_clip_1.jpg":"phan-4","SP018_4_1.jpg":"phan-4","SP014_1_9.jpg":"phan-4","SP014_1_3.jpg":"phan-4","SP015_1_1.jpg":"phan-4","SP015_1_6.jpg":"phan-4","SP017_0_1.jpg":"phan-4","SP015_0_5.jpg":"phan-4","SP015_1_4.jpg":"phan-4","SP014_1_2.jpg":"phan-4","SP017_0_4.jpg":"phan-4","SP017_1_4.jpg":"phan-4","SP018_0_8.jpg":"phan-4","SP015_1_11.jpg":"phan-4","SP015_1_2.jpg":"phan-4"};
 const A = src => { const mm = String(src).match(/^(.*?)anh\/([^?]+)(\?.*)?$/); if (!mm) return src; const d = ANH_DIR[mm[2]]; return d ? `${mm[1]}${d}/anh/${mm[2]}${mm[3] || ""}` : src; };
-const imgSrc = (p, ci, n = 1) => A(`anh/${p.sku}_${ci}_${n}.jpg?v=${IMGV}`);
+const imgSrc = (p, ci, n = 1) => p.ext ? GD(extImgs(p, ci)[n - 1] || "") : A(`anh/${p.sku}_${ci}_${n}.jpg?v=${IMGV}`);
 const pic = (p, ci = 0, cls = "g", n = 1) => {
   const svg = garment(p.shape, p.colors[ci][1], cls);
   if (!nImg(p, ci)) return svg;
@@ -749,7 +756,9 @@ const pic = (p, ci = 0, cls = "g", n = 1) => {
   return BAD.has(src) ? svg : svg + `<img class="ph pend" src="${src}" alt="${esc(p.name)} – ${esc(p.colors[ci][0])}" loading="lazy">`;
 };
 document.addEventListener("load", e => { const t = e.target; if (t.classList && t.classList.contains("ph")) { t.classList.remove("pend"); if (t.naturalWidth > t.naturalHeight * 1.05) t.classList.add("wide"); } }, true);
-document.addEventListener("error", e => { const t = e.target; if (t.classList && t.classList.contains("ph")) { BAD.add(t.getAttribute("src")); t.remove(); } }, true);
+document.addEventListener("error", e => { const t = e.target; const g = t.tagName === "IMG" && String(t.getAttribute("src")).match(/^https:\/\/lh3\.googleusercontent\.com\/d\/([^=]+)=w(\d+)/);
+  if (g) { t.src = `https://drive.google.com/thumbnail?id=${g[1]}&sz=w${g[2]}`; return; }
+  if (t.classList && t.classList.contains("ph")) { BAD.add(t.getAttribute("src")); t.remove(); } }, true);
 
 /* ================= TRẠNG THÁI ================= */
 let cart = store.get("mc-cart", []);   // [{sku, ci, si, q}]
@@ -825,9 +834,14 @@ function card(p) {
 }
 
 /* ================= CỬA HÀNG + BỘ LỌC ================= */
-const PRICE_RANGES = [["Dưới 200.000đ", 0, 199999], ["200.000đ – 250.000đ", 200000, 250000], ["250.000đ – 500.000đ", 250001, 500000], ["Trên 500.000đ", 500001, 1e12]].filter(r => P.some(p => now(p) >= r[1] && now(p) <= r[2]));
-const ALL_SIZES = [...new Set(P.flatMap(p => p.sizes))].sort((a, b) => ["S", "M", "L", "XL", "Freesize"].indexOf(a) - ["S", "M", "L", "XL", "Freesize"].indexOf(b));
-const ALL_FAMS = Object.keys(FAMILY_SW).filter(f => P.some(p => p.colors.some(c => family(c[0]) === f)));
+let PRICE_RANGES = [["Dưới 200.000đ", 0, 199999], ["200.000đ – 250.000đ", 200000, 250000], ["250.000đ – 500.000đ", 250001, 500000], ["Trên 500.000đ", 500001, 1e12]].filter(r => P.some(p => now(p) >= r[1] && now(p) <= r[2]));
+let ALL_SIZES = [...new Set(P.flatMap(p => p.sizes))].sort((a, b) => ["S", "M", "L", "XL", "Freesize"].indexOf(a) - ["S", "M", "L", "XL", "Freesize"].indexOf(b));
+let ALL_FAMS = Object.keys(FAMILY_SW).filter(f => P.some(p => p.colors.some(c => family(c[0]) === f)));
+function recalcFilters() {
+  PRICE_RANGES = [["Dưới 200.000đ", 0, 199999], ["200.000đ – 250.000đ", 200000, 250000], ["250.000đ – 500.000đ", 250001, 500000], ["Trên 500.000đ", 500001, 1e12]].filter(r => P.some(p => now(p) >= r[1] && now(p) <= r[2]));
+  ALL_SIZES = [...new Set(P.flatMap(p => p.sizes))].sort((a, b) => { const o = ["XS", "S", "M", "L", "XL", "XXL", "Freesize"]; return (o.indexOf(a) + 99) % 99 - (o.indexOf(b) + 99) % 99; });
+  ALL_FAMS = Object.keys(FAMILY_SW).filter(f => P.some(p => p.colors.some(c => family(c[0]) === f)));
+}
 function resetF() { Object.assign(F, { cat: null, col: null, price: null, avail: null, sale: false, isNew: false, q: F.q }); F.sizes.clear(); F.fams.clear(); }
 function match(p, skip) {
   if (skip !== "cat" && F.cat && p.cat !== F.cat) return false;
@@ -950,6 +964,14 @@ document.addEventListener("touchend", e => {
 }, { passive: true });
 const posterOf = src => A(String(src).replace(/^.*?anh\//, "anh/").replace(/\.(mp4|webm|mov)(\?.*)?$/i, ".jpg$2"));
 function mediaList(p, ci) {
+  if (p.ext) {
+    const l = []; const own = (p.ext.imgs[ci] || []).length; const k = nImg(p, ci);
+    for (let n = 1; n <= Math.max(k, 1); n++) l.push({ t: "img", ci, n });
+    if (own) p.ext.chung.forEach(id => l.push({ t: "url", src: GD(id) }));
+    if (p.ext.size) l.push({ t: "url", src: GD(p.ext.size, 1400), fit: "contain" });
+    p.ext.vids.filter(v => v.ci < 0 || v.ci === ci).forEach(v => l.push({ t: "ifr", id: v.id }));
+    return l;
+  }
   const l = []; const k = nImg(p, ci);
   for (let n = 1; n <= Math.max(k, 1); n++) l.push({ t: "img", ci, n });
   for (let n = 1; n <= +((IMAGES[p.sku] || {}).chung || 0); n++) l.push({ t: "url", src: A(`anh/${p.sku}_chung_${n}.jpg?v=${IMGV}`) });
@@ -971,9 +993,9 @@ function paintPD() {
   $("#addBtn").disabled = false; $("#buyNow").disabled = false;
   $("#addBtn").textContent = ordSel ? `Đặt order (${ORDER_DAYS} ngày)` : "Thêm vào giỏ";
   const ml = mediaList(p, ci); if (PD.mi >= ml.length) PD.mi = 0;
-  $("#thumbs").innerHTML = ml.map((m, i) => `<button class="${i === PD.mi ? "on" : ""} ${m.t === "vid" ? "vid" : ""}" data-mi="${i}">${m.t === "img" ? pic(p, ci, "", m.n) : m.t === "url" ? `<img class="ph" src="${esc(m.src)}" alt="">` : garment(p.shape, p.colors[ci][1], "") + `<img class="ph" src="${esc(posterOf(m.src))}" alt="">`}</button>`).join("");
+  $("#thumbs").innerHTML = ml.map((m, i) => `<button class="${i === PD.mi ? "on" : ""} ${m.t === "vid" || m.t === "ifr" ? "vid" : ""}" data-mi="${i}">${m.t === "img" ? pic(p, ci, "", m.n) : m.t === "url" ? `<img class="ph" src="${esc(m.src)}" alt="">` : m.t === "ifr" ? garment(p.shape, p.colors[ci][1], "") + `<img class="ph" src="${GD(m.id, 300)}" alt="">` : garment(p.shape, p.colors[ci][1], "") + `<img class="ph" src="${esc(posterOf(m.src))}" alt="">`}</button>`).join("");
   const m = ml[PD.mi];
-  $("#mainImg").innerHTML = (m.t === "img" ? pic(p, ci, "", m.n) : m.t === "url" ? `<img class="ph${m.fit ? " wide" : ""}" src="${esc(m.src)}" alt="${esc(p.name)}">` : `<video src="${esc(m.src)}" poster="${esc(posterOf(m.src))}" controls playsinline autoplay muted loop></video>`)
+  $("#mainImg").innerHTML = (m.t === "img" ? pic(p, ci, "", m.n) : m.t === "url" ? `<img class="ph${m.fit ? " wide" : ""}" src="${esc(m.src)}" alt="${esc(p.name)}">` : m.t === "ifr" ? `<iframe class="gdv" src="https://drive.google.com/file/d/${encodeURIComponent(m.id)}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>` : `<video src="${esc(m.src)}" poster="${esc(posterOf(m.src))}" controls playsinline autoplay muted loop></video>`)
     + (ml.length > 1 ? `<button class="nav-arrow l" data-mstep="-1" aria-label="Ảnh trước">‹</button><button class="nav-arrow r" data-mstep="1" aria-label="Ảnh sau">›</button><span class="mcount">${PD.mi + 1}/${ml.length}</span>` : "");
 }
 function pdAdd(silent) {
@@ -1365,6 +1387,17 @@ async function loadStock() {
   try {
     const r = await fetch(STOCK_URL + "?action=stock", { cache: "no-store" }); const j = await r.json(); if (!j || !j.stock) return;
     const low = o => { const m = {}; Object.keys(o || {}).forEach(k => m[k.trim().toLowerCase()] = o[k]); return m; };
+    if (Array.isArray(j.products)) j.products.forEach(x => {
+      if (!x || !x.sku || !x.name || !x.price) return;
+      const np = { sku: x.sku, name: x.name, cat: x.cat || "Áo", type: "san", price: +x.price, shape: "tee", colors: (x.colors || []).map(colorOf), sizes: x.sizes || ["Freesize"], desc: x.desc || "",
+        isNew: !!x.isNew, ext: { imgs: x.imgs || {}, chung: x.chung || [], vids: x.vids || [], size: x.size || "" } };
+      if (!np.colors.length) np.colors = [colorOf("Một màu")];
+      if (x.sale && x.sale < np.price) np.sale = +x.sale;
+      if (np.sale) np.cpr = np.colors.map(() => ({ o: np.price, n: np.sale }));
+      const i = P.findIndex(p => p.sku === np.sku); if (i >= 0) P[i] = np; else P.unshift(np);
+      if (!CATS.includes(np.cat)) CATS.push(np.cat);
+    });
+    if (Array.isArray(j.hidden)) j.hidden.forEach(k => { const i = P.findIndex(p => p.sku === k); if (i >= 0) P.splice(i, 1); });
     P.forEach(p => {
       const bySkuS = j.stock[p.sku]; if (!bySkuS) return;
       const cm = low(bySkuS);
@@ -1381,8 +1414,8 @@ async function loadStock() {
       PROMOS = j.promos;
       const b = PROMOS.find(x => x.banner && x.note); if (b) $(".promo").innerHTML = `🎁 ${esc(b.note)} – nhập mã <b>${esc(b.code)}</b> khi thanh toán`;
     }
-    buildMenu(); renderMenu(); syncSaleOpt(); renderHero();
-    renderHome(); renderShop(); renderCart(); if (PD && pageOpen()) { paintPD(); }
+    recalcFilters(); buildMenu(); renderMenu(); syncSaleOpt(); renderHero();
+    renderHome(); renderShop(); renderCart(); const hm = location.hash.match(/^#sp-(.+)$/); if (hm && (!pageOpen() || !PD || PD.p.sku !== hm[1] || !bySku(hm[1]))) route(); else if (PD && pageOpen()) { PD.p = bySku(PD.p.sku) || PD.p; paintPD(); }
   } catch (e) { /* lỗi mạng: dùng giá và tồn kho mặc định trên web */ }
 }
 loadStock();
