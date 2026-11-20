@@ -336,6 +336,14 @@
   .sz button.ordz::after{content:"order";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);font-size:9.5px;line-height:1;padding:2px 5px;border-radius:6px;background:#F4E9DC;color:#8A6F55;letter-spacing:.3px}
   .quick button.ordz{border-style:dashed;opacity:.8}
   .status2{display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:13.5px;color:#5B524A}
+  .policy{line-height:1.75;font-size:14.5px}
+  .policy h4{font-size:15.5px;margin:18px 0 6px}
+  .policy ul,.policy ol{padding-left:20px;margin:4px 0 8px}
+  .policy li{margin:3px 0}
+  .co-policy{margin:-4px 0 12px;font-size:12.5px;color:var(--muted)}
+  .co-policy summary{cursor:pointer;list-style:none}
+  .co-policy .policy{font-size:13px;color:var(--ink);max-height:300px;overflow:auto;border:1px solid #E6DED4;border-radius:8px;padding:6px 14px;margin-top:8px;background:#fff}
+  .linkbtn{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;cursor:pointer;font:inherit}
   .promo-row{display:flex;gap:8px}
   .promo-row input{flex:1;text-transform:uppercase}
   .promo-row .btn{padding:0 16px;white-space:nowrap}
@@ -487,6 +495,7 @@
       <li><button data-sizeguide>Hướng dẫn chọn size</button></li>
       <li><button data-info="ship">Giao hàng &amp; thanh toán</button></li>
       <li><button data-info="receive">Lưu ý khi nhận hàng</button></li>
+      <li><button data-info="policy">Chính sách đổi trả &amp; hoàn tiền</button></li>
     </ul></div>
     <div><h4>Liên hệ</h4>
       <p>Instagram: <span id="igFoot">đang cập nhật</span></p>
@@ -537,9 +546,9 @@ const ORDER_DAYS = "5–7";            // hết hàng sẵn → đặt order, c�
 const SHIP_SAMEDAY = 10000;          // giao trong ngày nội thành HCM: cộng thêm vào phí tiêu chuẩn (15k + 10k)
 const COD_FAST_FEE = 5000;           // hoả tốc / trong ngày + COD: phí thu hộ
 const BANK = { bank: "BIDV", acc: "8824758633", owner: "NGUYEN MINH TRANG" };
-const MAIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC6MoxBYuxE0yEd91Ma9P7nMr14Kca4U_EJw6WAmN_mDQ0M2E-K1-xH_xHvvc6eHjrTQ/exec";
+const MAIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmnme3vyZEKmhCkLxVaUToazneO7WPMSV7IE6WvMRfv2UrnG8NBg_BHghzd8kcioVPOw/exec";
 // Link Apps Script gắn với Google Sheet tồn kho (đọc tồn kho + trừ kho + gửi mail). Có link này thì web dùng nó thay cho MAIL_SCRIPT_URL.
-const STOCK_URL = "https://script.google.com/macros/s/AKfycbzXtLYvKlNvEOYWd4gXXvAnTnQtnRG5nKve773IWlcr8G4y8UirScPgPOEihENgCfoS/exec";
+const STOCK_URL = "https://script.google.com/macros/s/AKfycbwmnme3vyZEKmhCkLxVaUToazneO7WPMSV7IE6WvMRfv2UrnG8NBg_BHghzd8kcioVPOw/exec";
 const SCRIPT_URL = STOCK_URL || MAIL_SCRIPT_URL;
 const IMGV = "32";                   // tăng số này mỗi lần thay ảnh
 const SHIP_STD = 15000;              // phí giao tiêu chuẩn
@@ -914,6 +923,7 @@ function renderProductPage(sku) {
         <div class="acc2">
           <details><summary>Giao hàng &amp; thanh toán</summary><ul><li>Hàng có sẵn: giao 2–4 ngày, COD hoặc chuyển khoản.</li><li>Hàng order (khi hết size/màu): có hàng sau ${ORDER_DAYS} ngày, cọc 50% hoặc chuyển khoản full.</li><li>Giao tiêu chuẩn: phí ship 15.000đ.</li><li>Nội thành TP.HCM: giao hoả tốc (phí theo giá app) hoặc trong ngày (25.000đ = 15.000đ + 10.000đ). Chọn COD với 2 cách này thêm 5.000đ.</li><li>Shop ở Bình Thạnh, TP.HCM.</li></ul></details>
           <details><summary>Lưu ý khi nhận hàng</summary><p>Vui lòng quay video kỹ, liên tục khi mở hàng, không cắt ghép clip để được hỗ trợ nếu sản phẩm có lỗi.</p></details>
+          <details><summary>Đổi trả &amp; hoàn tiền</summary><ul><li>Đổi mẫu/size trong 03 ngày kể từ khi nhận hàng (sản phẩm còn tem, tag, chưa sử dụng).</li><li>Hàng lỗi, giao sai, hư hỏng khi vận chuyển: báo shop ngay, kèm video unbox liền mạch.</li><li>Hoàn tiền qua chuyển khoản trong 03–07 ngày làm việc khi được xác nhận.</li></ul><p><button class="linkbtn" data-info="policy">Xem chi tiết chính sách →</button></p></details>
         </div>
       </div>
     </div>
@@ -1072,9 +1082,32 @@ function sizeGuide() {
   if (back) $("#sgBack").onclick = () => { const sz = $("#recV").textContent; const si = back.p.sizes.indexOf(sz); if (si >= 0 && stockOf(back.p, back.ci, si)) PD.si = si; closeAll(); paintPD(); };
   upd();
 }
+const POLICY_HTML = () => `<div class="policy">
+<p>Maschala Closet mong mang đến cho bạn trải nghiệm mua sắm thật vui. Nếu sản phẩm có lỗi hoặc không đúng với đơn đã đặt, bạn có thể yêu cầu đổi trả hoặc hoàn tiền theo các điều kiện dưới đây.</p>
+<h4>1. Trường hợp được hỗ trợ</h4>
+<ul><li>Sản phẩm bị lỗi do nhà sản xuất.</li><li>Giao sai mẫu, size hoặc màu so với đơn đặt hàng.</li><li>Sản phẩm bị hư hỏng trong quá trình vận chuyển.</li><li>Sản phẩm không đúng với thông tin, hình ảnh trên website.</li></ul>
+<p><b>Điều kiện:</b></p>
+<ul><li>Có <b>video unbox</b> quay đủ 4 mặt kiện hàng từ lúc chưa mở. Video liền mạch, không cắt ghép, không chỉnh sửa.</li><li>Sản phẩm còn nguyên tem, tag, nhãn mác và chưa qua sử dụng.</li><li>Có <b>mã đơn hàng</b> (dạng MC…, ghi trong xác nhận đơn) hoặc thông tin mua hàng để đối chiếu.</li></ul>
+<h4>2. Thời hạn</h4>
+<ul><li>Đổi mẫu hoặc đổi size: gửi yêu cầu trong vòng <b>03 ngày</b> kể từ ngày nhận hàng.</li><li>Sản phẩm lỗi, giao sai hoặc hư hỏng do vận chuyển: vui lòng báo shop <b>ngay sau khi nhận hàng</b>.</li></ul>
+<h4>3. Cách gửi yêu cầu</h4>
+<ol><li>Nhắn shop qua Instagram <b>@mas.cha.la</b>, TikTok <b>@maschala.macha</b>, hotline/Zalo <b>0934 625 974</b> hoặc email <b>minhtrang030206@gmail.com</b>, kèm: mã đơn hàng, video unbox, ảnh sản phẩm và nội dung muốn đổi/trả.</li><li>Shop kiểm tra và phản hồi sớm nhất.</li><li>Nếu yêu cầu được chấp nhận, bạn gửi sản phẩm về shop theo hướng dẫn.</li><li>Shop kiểm tra sản phẩm, sau đó đổi hàng hoặc hoàn tiền theo chính sách.</li></ol>
+<h4>4. Đổi hàng &amp; hoàn tiền</h4>
+<p><b>Đổi hàng</b></p>
+<ul><li>Đổi sang cùng mẫu hoặc đổi size khác (nếu còn hàng).</li><li>Nếu size/màu cần đổi đã hết hàng sẵn, shop có thể đặt order lại cho bạn – có hàng sau ${ORDER_DAYS} ngày.</li><li>Hoặc bạn chọn mẫu khác: bù thêm hoặc được hoàn phần chênh lệch (nếu có).</li></ul>
+<p><b>Hoàn tiền</b> khi:</p>
+<ul><li>Không còn sản phẩm để đổi (trường hợp giao sai hoặc sản phẩm lỗi).</li><li>Sản phẩm lỗi do nhà sản xuất và không thể thay thế.</li><li>Giao sai sản phẩm nhưng bạn không muốn nhận sản phẩm thay thế.</li><li>Các trường hợp khác theo thoả thuận giữa hai bên hoặc theo quy định pháp luật.</li></ul>
+<p>Hình thức: <b>chuyển khoản ngân hàng</b> vào tài khoản bạn cung cấp. Thời gian: trong vòng <b>03–07 ngày làm việc</b> kể từ khi yêu cầu hoàn tiền được xác nhận.</p>
+<h4>5. Phí đổi trả</h4>
+<ul><li>Bạn tự chọn mẫu hoặc size mà không nhắn shop tư vấn và muốn đổi: bạn chịu phí ship hai chiều.</li><li>Đổi trả do lỗi của shop, lỗi nhà sản xuất hoặc hư hỏng khi vận chuyển: <b>Maschala Closet chịu toàn bộ chi phí</b> đổi trả và hoàn tiền (nếu có).</li></ul>
+<h4>6. Trường hợp không áp dụng</h4>
+<ul><li>Sản phẩm đã qua sử dụng, đã giặt, sửa hoặc không còn nguyên tem, tag, nhãn mác.</li><li>Không có video unbox theo quy định khi khiếu nại thiếu hàng, sai hàng hoặc hư hỏng do vận chuyển.</li><li>Quá thời hạn đổi trả.</li><li>Có dấu hiệu lợi dụng chính sách đổi trả hoặc gian lận khi giao dịch.</li></ul>
+<p class="muted" style="margin-top:14px">Cần tư vấn size trước khi mua? Nhắn shop qua Instagram hoặc dùng mục “Bảng size &amp; gợi ý size” trên từng sản phẩm để hạn chế phải đổi hàng nhé 🤍</p>
+</div>`;
 function info(kind) {
   const T = {
     ship: ["Giao hàng & thanh toán", `<ul style="padding-left:18px;line-height:1.9"><li><b>Hàng có sẵn:</b> giao 2–4 ngày. Thanh toán COD (khi nhận hàng) hoặc chuyển khoản.</li><li><b>Hàng order:</b> có hàng sau 5–7 ngày. Cọc 50% giá trị đơn hoặc chuyển khoản full.</li><li>Đơn có cả hàng sẵn và hàng order sẽ thanh toán theo hàng order.</li><li><b>Giao tiêu chuẩn:</b> phí ship 15.000đ.</li><li><b>Nội thành TP.HCM:</b> giao hoả tốc (phí theo giá book app) hoặc giao trong ngày (25.000đ = 15.000đ + 10.000đ). Chọn COD với 2 cách này thêm 5.000đ phí thu hộ.</li><li>Shop ở Bình Thạnh, TP.HCM.</li><li>Chuyển khoản: BIDV · ${BANK.acc} · ${BANK.owner}. Nội dung: ID TikTok hoặc tên Instagram.</li></ul>`],
+    policy: ["Chính sách đổi trả & hoàn tiền", POLICY_HTML()],
     receive: ["Lưu ý khi nhận hàng", `<p style="line-height:1.8">Vui lòng <b>quay video kỹ, liên tục</b> từ lúc mở gói hàng đến khi kiểm tra xong sản phẩm. <b>Không cắt ghép clip</b> để shop có căn cứ hỗ trợ nếu sản phẩm bị lỗi hoặc giao nhầm.</p>`]
   }[kind];
   openModal(`<div class="sg"><h3>${T[0]}</h3><div style="margin-top:14px;font-size:14.5px">${T[1]}</div></div>`, "narrow");
@@ -1161,6 +1194,7 @@ function checkout() {
     </form>
     <div class="co-sum">${t.items.map(x => `<div class="sum"><span>${esc(x.p.name)} · ${esc(x.p.colors[x.ci][0])} · ${x.p.sizes[x.si]} × ${x.q}</span><span>${vnd(unit(x.p, x.ci) * x.q)}</span></div>`).join("")}
       <div id="coTot"></div></div>
+    <details class="co-policy"><summary>Đặt hàng nghĩa là bạn đồng ý với <u>chính sách đổi trả &amp; hoàn tiền</u></summary>${POLICY_HTML()}</details>
     <button class="btn full" id="placeOrder">Tiếp tục</button>
   </div>`, "narrow");
   const f = $("#coForm");
