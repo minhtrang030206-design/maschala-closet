@@ -969,6 +969,7 @@ function mediaList(p, ci) {
     for (let n = 1; n <= Math.max(k, 1); n++) l.push({ t: "img", ci, n });
     if (own) p.ext.chung.forEach(id => l.push({ t: "url", src: GD(id) }));
     if (p.ext.size) l.push({ t: "url", src: GD(p.ext.size, 1400), fit: "contain" });
+    else if (p.ext.sizeUrl) l.push({ t: "url", src: p.ext.sizeUrl, fit: "contain" });
     p.ext.vids.filter(v => v.ci < 0 || v.ci === ci).forEach(v => l.push({ t: "ifr", id: v.id }));
     return l;
   }
@@ -1396,6 +1397,20 @@ async function loadStock() {
       if (np.sale) np.cpr = np.colors.map(() => ({ o: np.price, n: np.sale }));
       const i = P.findIndex(p => p.sku === np.sku); if (i >= 0) P[i] = np; else P.unshift(np);
       if (!CATS.includes(np.cat)) CATS.push(np.cat);
+    });
+    if (j.extra) Object.keys(j.extra).forEach(k => {   // ảnh Drive thay cho ảnh cũ của mẫu có sẵn
+      const p = bySku(k); if (!p || p.ext) return;
+      const nb = t => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const keys = p.colors.map((c, ci) => ({ ci, k: nb(c[0]) })).sort((a, b) => b.k.length - a.k.length);
+      const e = { imgs: {}, chung: [], vids: [], size: "" };
+      j.extra[k].forEach(f => {
+        if (!f.v && /bangsize|size/.test(f.k)) { if (!e.size) e.size = f.id; return; }
+        let ci = -1; const mm = f.k.match(/mau(\d+)/);
+        if (mm && +mm[1] >= 1 && +mm[1] <= p.colors.length) ci = +mm[1] - 1; else { const h = keys.find(x => x.k && f.k.includes(x.k)); if (h) ci = h.ci; }
+        if (f.v) e.vids.push({ ci, id: f.id }); else if (ci < 0) e.chung.push(f.id); else (e.imgs[ci] = e.imgs[ci] || []).push(f.id);
+      });
+      if (!e.size && PSIZE[p.sku] && PSIZE[p.sku].img) e.sizeUrl = A(`${PSIZE[p.sku].img}?v=${IMGV}`);
+      p.ext = e;
     });
     if (Array.isArray(j.hidden)) j.hidden.forEach(k => { const i = P.findIndex(p => p.sku === k); if (i >= 0) P.splice(i, 1); });
     P.forEach(p => {
