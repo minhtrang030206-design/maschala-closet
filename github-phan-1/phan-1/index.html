@@ -85,7 +85,13 @@
   .cat{position:relative;aspect-ratio:3/4;background:var(--beige);overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
   .cat svg{position:absolute;inset:8% 14% 20%;width:72%;height:72%;transition:transform .4s}
   .cat:hover svg{transform:scale(1.05)}
-  .cat span{position:relative;background:var(--paper);padding:8px 18px;margin-bottom:16px;font-size:12.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}
+  .cats{justify-content:center}
+  #catSec{margin-bottom:36px}
+  .cat .cph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.1s ease,transform 6s ease;transform:scale(1.04)}
+  .cat .cph.on{opacity:1;transform:scale(1)}
+  .cat::after{content:"";position:absolute;inset:auto 0 0;height:40%;background:linear-gradient(transparent,rgba(31,27,24,.28));pointer-events:none}
+  .cat span em{font-style:normal;font-weight:400;letter-spacing:.5px;text-transform:none;color:var(--muted);margin-left:4px}
+  .cat span{z-index:1;position:relative;background:var(--paper);padding:8px 18px;margin-bottom:16px;font-size:12.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}
 
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px 18px}
   .card{display:flex;flex-direction:column;gap:8px}
@@ -803,8 +809,14 @@ function showSlide(i) { slideI = i; $$(".slide").forEach((s, j) => s.classList.t
 
 function renderHome() {
   $("#catSec").style.display = CATS.length > 1 ? "" : "none";   // chỉ 1 danh mục thì ẩn mục này
-  $("#cats").style.gridTemplateColumns = `repeat(${Math.min(CATS.length, 5)},1fr)`;
-  $("#cats").innerHTML = CATS.map(c => { const p = P.find(x => x.cat === c); return `<button class="cat" data-cat="${c}">${garment(p.shape, p.colors[0][1], "")}<span>${c}</span></button>`; }).join("");
+  const nC = Math.min(CATS.length, 5);
+  $("#cats").style.gridTemplateColumns = nC <= 3 ? `repeat(${nC},minmax(0,340px))` : `repeat(${nC},1fr)`;
+  $("#cats").innerHTML = CATS.map(c => {
+    const ps = P.filter(x => x.cat === c); if (!ps.length) return "";
+    const pics = ps.filter(x => nImg(x, 0)).slice(0, 8);
+    const imgs = pics.map((x, i) => `<img class="cph ${i === 0 ? "on" : ""}" src="${esc(imgSrc(x, 0, 1))}" alt="${esc(x.name)}" loading="lazy">`).join("");
+    return `<button class="cat" data-cat="${esc(c)}">${pics.length ? imgs : garment(ps[0].shape, ps[0].colors[0][1], "")}<span>${esc(c)} <em>${ps.length} mẫu</em></span></button>`;
+  }).join("");
   const news = P.filter(p => p.isNew);
   $("#newTitle").textContent = news.length ? "Hàng mới về" : "Sản phẩm nổi bật";
   $("#newSub").textContent = news.length ? "Những thiết kế vừa lên kệ" : "Những mẫu được yêu thích";
@@ -1450,6 +1462,8 @@ async function loadStock() {
   } catch (e) { /* lỗi mạng: dùng giá và tồn kho mặc định trên web */ }
 }
 loadStock();
+setInterval(() => { document.querySelectorAll("#cats .cat").forEach((el, k) => { const im = el.querySelectorAll(".cph"); if (im.length < 2) return;
+  const i = [...im].findIndex(x => x.classList.contains("on")); setTimeout(() => { im[i].classList.remove("on"); im[(i + 1) % im.length].classList.add("on"); }, k * 400); }); }, 3200);
 if (TIKTOK_USER) $("#ttFoot").innerHTML = `<a href="https://www.tiktok.com/@${encodeURIComponent(TIKTOK_USER)}" target="_blank" rel="noopener">@${esc(TIKTOK_USER)}</a>`;
 if (IG_USER) $("#igFoot").innerHTML = `<a href="https://www.instagram.com/${encodeURIComponent(IG_USER)}" target="_blank" rel="noopener">@${esc(IG_USER)}</a>`;
 </script>
