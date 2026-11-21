@@ -348,6 +348,22 @@
   .policy li{margin:3px 0}
   #mainImg iframe.gdv{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
   .szimg{display:block;width:100%;max-width:520px;height:auto;border-radius:8px;border:1px solid #EDE5DA;background:#fff}
+  #mainImg img{cursor:zoom-in}
+  .zoomhint{position:absolute;right:12px;top:12px;z-index:3;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.85);font-size:17px;line-height:36px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.12)}
+  #zoom{position:fixed;inset:0;z-index:1000;background:rgba(18,15,13,.96);display:none;user-select:none;-webkit-user-select:none}
+  #zoom.on{display:block}
+  #zoom .zstage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
+  #zoom #zImg{max-width:100%;max-height:100%;object-fit:contain;transform-origin:center center;cursor:zoom-in;will-change:transform}
+  #zoom.zoomed #zImg{cursor:grab}
+  #zoom .zbtn{position:absolute;z-index:2;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:46px;text-align:center}
+  #zoom .zbtn:hover{background:rgba(255,255,255,.26)}
+  #zoom .zx{top:14px;right:14px;font-size:20px}
+  #zoom .zl{left:14px;top:50%;transform:translateY(-50%)}
+  #zoom .zr{right:14px;top:50%;transform:translateY(-50%)}
+  #zoom.zoomed .zl,#zoom.zoomed .zr{display:none}
+  #zoom .zbar{position:absolute;left:0;right:0;bottom:14px;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font-size:13px;pointer-events:none}
+  #zoom .zhint{opacity:.6;font-size:12px}
+  #zoom.zoomed .zhint{display:none}
   .co-policy{margin:-4px 0 12px;font-size:12.5px;color:var(--muted)}
   .co-policy summary{cursor:pointer;list-style:none}
   .co-policy .policy{font-size:13px;color:var(--ink);max-height:300px;overflow:auto;border:1px solid #E6DED4;border-radius:8px;padding:6px 14px;margin-top:8px;background:#fff}
@@ -1021,6 +1037,7 @@ function paintPD() {
   $("#thumbs").innerHTML = ml.map((m, i) => `<button class="${i === PD.mi ? "on" : ""} ${m.t === "vid" || m.t === "ifr" ? "vid" : ""}" data-mi="${i}">${m.t === "img" ? pic(p, ci, "", m.n) : m.t === "url" ? `<img class="ph" src="${esc(m.src)}" alt="">` : m.t === "ifr" ? garment(p.shape, p.colors[ci][1], "") + `<img class="ph" src="${GD(m.id, 300)}" alt="">` : garment(p.shape, p.colors[ci][1], "") + `<img class="ph" src="${esc(posterOf(m.src))}" alt="">`}</button>`).join("");
   const m = ml[PD.mi];
   $("#mainImg").innerHTML = (m.t === "img" ? pic(p, ci, "", m.n) : m.t === "url" ? `<img class="ph${m.fit ? " wide" : ""}" src="${esc(m.src)}" alt="${esc(p.name)}">` : m.t === "ifr" ? `<iframe class="gdv" src="https://drive.google.com/file/d/${encodeURIComponent(m.id)}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>` : `<video src="${esc(m.src)}" poster="${esc(posterOf(m.src))}" controls playsinline autoplay muted loop></video>`)
+    + (m.t === "img" || m.t === "url" ? `<button class="zoomhint" aria-label="Phóng to ảnh">⤢</button>` : "")
     + (ml.length > 1 ? `<button class="nav-arrow l" data-mstep="-1" aria-label="Ảnh trước">‹</button><button class="nav-arrow r" data-mstep="1" aria-label="Ảnh sau">›</button><span class="mcount">${PD.mi + 1}/${ml.length}</span>` : "");
 }
 function pdAdd(silent) {
@@ -1401,7 +1418,54 @@ document.addEventListener("change", e => {
   if (t.id === "sort") { F.sort = t.value; renderShop(); }
 });
 $("#scrim").addEventListener("click", closeAll);
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeAll(); });
+document.addEventListener("keydown", e => { if (ZM.on) { if (e.key === "Escape") zoomClose(); else if (e.key === "ArrowRight") zoomGo(1); else if (e.key === "ArrowLeft") zoomGo(-1); return; } if (e.key === "Escape") closeAll(); });
+/* ===== Phóng to ảnh sản phẩm ===== */
+const ZM = { on: false, list: [], i: 0, s: 1, x: 0, y: 0 };
+const bigSrc = u => String(u).replace(/=w\d+$/, "=w2200");
+function zoomOpen() {
+  if (!PD) return; const p = PD.p, ci = PD.ci, ml = mediaList(p, ci);
+  const list = []; let start = 0;
+  ml.forEach((m, k) => { if (m.t !== "img" && m.t !== "url") return; if (k === PD.mi) start = list.length; list.push(bigSrc(m.t === "img" ? imgSrc(p, ci, m.n) : m.src)); });
+  if (!list.length) return;
+  let el = $("#zoom"); if (!el) { el = document.createElement("div"); el.id = "zoom"; document.body.appendChild(el); }
+  el.innerHTML = `<div class="zstage" id="zStage"><img id="zImg" alt="" draggable="false"></div>
+    <button class="zbtn zx" data-z="x" aria-label="Đóng">✕</button>
+    ${list.length > 1 ? `<button class="zbtn zl" data-z="-1" aria-label="Ảnh trước">‹</button><button class="zbtn zr" data-z="1" aria-label="Ảnh sau">›</button>` : ""}
+    <div class="zbar"><span id="zCnt"></span><span class="zhint">Chạm 2 lần hoặc dùng 2 ngón để phóng to</span></div>`;
+  Object.assign(ZM, { on: true, list, i: start }); el.classList.add("on"); document.body.style.overflow = "hidden"; zoomShow();
+}
+function zoomClose() { ZM.on = false; const el = $("#zoom"); if (el) el.classList.remove("on"); document.body.style.overflow = ""; }
+function zoomShow() { ZM.s = 1; ZM.x = 0; ZM.y = 0; $("#zImg").src = ZM.list[ZM.i]; $("#zCnt").textContent = ZM.list.length > 1 ? `${ZM.i + 1} / ${ZM.list.length}` : ""; zoomApply(); }
+function zoomGo(d) { if (ZM.list.length < 2) return; ZM.i = (ZM.i + d + ZM.list.length) % ZM.list.length; zoomShow(); }
+function zoomClamp() { const st = $("#zStage"), im = $("#zImg"); if (!st || !im) return; const w = im.offsetWidth * ZM.s, h = im.offsetHeight * ZM.s;
+  const mx = Math.max(0, (w - st.clientWidth) / 2), my = Math.max(0, (h - st.clientHeight) / 2); ZM.x = Math.min(mx, Math.max(-mx, ZM.x)); ZM.y = Math.min(my, Math.max(-my, ZM.y)); }
+function zoomApply(anim = true) { const im = $("#zImg"); if (!im) return; if (ZM.s <= 1) { ZM.s = 1; ZM.x = 0; ZM.y = 0; } zoomClamp();
+  im.style.transition = anim ? "transform .25s ease" : "none"; im.style.transform = `translate(${ZM.x}px,${ZM.y}px) scale(${ZM.s})`; $("#zoom").classList.toggle("zoomed", ZM.s > 1); }
+function zoomAt(cx, cy, ns) { const st = $("#zStage").getBoundingClientRect(); const ox = cx - (st.left + st.width / 2), oy = cy - (st.top + st.height / 2);
+  ns = Math.min(5, Math.max(1, ns)); ZM.x = ox - (ox - ZM.x) * ns / ZM.s; ZM.y = oy - (oy - ZM.y) * ns / ZM.s; ZM.s = ns; }
+document.addEventListener("click", e => {
+  if (ZM.on) { const b = e.target.closest("[data-z]"); if (b) { b.dataset.z === "x" ? zoomClose() : zoomGo(+b.dataset.z); return; }
+    if (e.target.id === "zStage") { if (ZM.s > 1) { ZM.s = 1; zoomApply(); } else zoomClose(); } return; }
+  const im = e.target.closest && e.target.closest("#mainImg img, #mainImg .zoomhint"); if (im) { e.stopPropagation(); zoomOpen(); }
+}, true);
+document.addEventListener("dblclick", e => { if (!ZM.on || e.target.id !== "zImg") return; if (ZM.s > 1) ZM.s = 1; else zoomAt(e.clientX, e.clientY, 2.5); zoomApply(); });
+document.addEventListener("wheel", e => { if (!ZM.on) return; e.preventDefault(); zoomAt(e.clientX, e.clientY, ZM.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15)); zoomApply(false); }, { passive: false });
+(() => { let drag = null, pinch = null, tapT = 0, sw = null;
+  const pts = e => [...e.touches].map(t => [t.clientX, t.clientY]);
+  document.addEventListener("pointerdown", e => { if (!ZM.on || e.pointerType === "touch" || e.target.id !== "zImg" || ZM.s <= 1) return; drag = { x: e.clientX - ZM.x, y: e.clientY - ZM.y }; e.preventDefault(); });
+  document.addEventListener("pointermove", e => { if (!drag) return; ZM.x = e.clientX - drag.x; ZM.y = e.clientY - drag.y; zoomApply(false); });
+  document.addEventListener("pointerup", () => { drag = null; });
+  document.addEventListener("touchstart", e => { if (!ZM.on || !e.target.closest("#zStage")) return; const p = pts(e);
+    if (p.length === 2) { pinch = { d: Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]), s: ZM.s }; sw = null; return; }
+    const now = Date.now(); if (now - tapT < 300) { if (ZM.s > 1) ZM.s = 1; else zoomAt(p[0][0], p[0][1], 2.5); zoomApply(); tapT = 0; sw = null; e.preventDefault(); return; } tapT = now;
+    sw = { x0: p[0][0], y0: p[0][1], x: p[0][0] - ZM.x, y: p[0][1] - ZM.y }; }, { passive: false });
+  document.addEventListener("touchmove", e => { if (!ZM.on || !e.target.closest("#zStage")) return; e.preventDefault(); const p = pts(e);
+    if (pinch && p.length === 2) { const d = Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]); const cx = (p[0][0] + p[1][0]) / 2, cy = (p[0][1] + p[1][1]) / 2; zoomAt(cx, cy, pinch.s * d / pinch.d); zoomApply(false); return; }
+    if (sw && ZM.s > 1) { ZM.x = p[0][0] - sw.x; ZM.y = p[0][1] - sw.y; zoomApply(false); } }, { passive: false });
+  document.addEventListener("touchend", e => { if (!ZM.on) return; if (pinch && e.touches.length < 2) { pinch = null; zoomApply(); return; }
+    if (sw && ZM.s <= 1 && e.changedTouches[0]) { const dx = e.changedTouches[0].clientX - sw.x0, dy = e.changedTouches[0].clientY - sw.y0;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) zoomGo(dx < 0 ? 1 : -1); else if (dy > 90 && Math.abs(dy) > Math.abs(dx)) zoomClose(); } sw = null; });
+})();
 let qT; $("#q").addEventListener("input", e => { clearTimeout(qT); qT = setTimeout(() => { F.q = e.target.value.trim(); renderShop(); if (F.q) document.getElementById("shop").scrollIntoView({ behavior: "smooth" }); }, 250); });
 function rerenderCards() { renderHome(); renderShop(); if ($("#modal").classList.contains("show") && PD) { /* keep modal */ } }
 
