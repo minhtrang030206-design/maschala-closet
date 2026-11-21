@@ -551,7 +551,7 @@ const SHOP = "Maschala Closet";
 const IG_USER = "mas.cha.la";       // tên Instagram, không có @
 const TIKTOK_USER = "maschala.macha"; // tên TikTok, không có @
 const ORDER_DAYS = "5–7";            // hết hàng sẵn → đặt order, có hàng sau bấy nhiêu ngày
-const SHIP_SAMEDAY = 10000;          // giao trong ngày nội thành HCM: cộng thêm vào phí tiêu chuẩn (15k + 10k)
+const SHIP_SAMEDAY = 10000;          // giao trong ngày nội thành HCM: phí ship 10k
 const COD_FAST_FEE = 5000;           // hoả tốc / trong ngày + COD: phí thu hộ
 const BANK = { bank: "BIDV", acc: "8824758633", owner: "NGUYEN MINH TRANG" };
 const MAIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmnme3vyZEKmhCkLxVaUToazneO7WPMSV7IE6WvMRfv2UrnG8NBg_BHghzd8kcioVPOw/exec";
@@ -559,8 +559,8 @@ const MAIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmnme3vyZEKmhC
 const STOCK_URL = "https://script.google.com/macros/s/AKfycbwmnme3vyZEKmhCkLxVaUToazneO7WPMSV7IE6WvMRfv2UrnG8NBg_BHghzd8kcioVPOw/exec";
 const SCRIPT_URL = STOCK_URL || MAIL_SCRIPT_URL;
 const IMGV = "32";                   // tăng số này mỗi lần thay ảnh
-const SHIP_STD = 15000;              // phí giao tiêu chuẩn
-const SHIP_NOTE = "15.000đ";
+const SHIP_STD = 0;                  // giao tiêu chuẩn: freeship
+const SHIP_NOTE = "Miễn phí";
 
 /* ================= DANH MỤC & BỘ SƯU TẬP ================= */
 const CATS = ["Áo"];
@@ -957,7 +957,7 @@ function renderProductPage(sku) {
         </div>
         <div class="blk desc2"><h4>Mô tả</h4>${p.desc ? `<p>${esc(p.desc)}</p><br>` : ""}<div>${sizeInfoLines(p)}</div><p class="muted" style="margin-top:10px">Số đo tham khảo, có thể chênh lệch 1–2 cm.</p></div>
         <div class="acc2">
-          <details><summary>Giao hàng &amp; thanh toán</summary><ul><li>Hàng có sẵn: giao 2–4 ngày, COD hoặc chuyển khoản.</li><li>Hàng order (khi hết size/màu): có hàng sau ${ORDER_DAYS} ngày, cọc 50% hoặc chuyển khoản full.</li><li>Giao tiêu chuẩn: phí ship 15.000đ.</li><li>Nội thành TP.HCM: giao hoả tốc (phí theo giá app) hoặc trong ngày (25.000đ = 15.000đ + 10.000đ). Chọn COD với 2 cách này thêm 5.000đ.</li><li>Shop ở Bình Thạnh, TP.HCM.</li></ul></details>
+          <details><summary>Giao hàng &amp; thanh toán</summary><ul><li>Hàng có sẵn: giao 2–4 ngày, COD hoặc chuyển khoản.</li><li>Hàng order (khi hết size/màu): có hàng sau ${ORDER_DAYS} ngày, cọc 50% hoặc chuyển khoản full.</li><li>Giao tiêu chuẩn: miễn phí ship.</li><li>Nội thành TP.HCM: giao hoả tốc (phí theo giá app) hoặc trong ngày (phí ship 10.000đ). Chọn COD với 2 cách này thêm 5.000đ.</li><li>Shop ở Bình Thạnh, TP.HCM.</li></ul></details>
           <details><summary>Lưu ý khi nhận hàng</summary><p>Vui lòng quay video kỹ, liên tục khi mở hàng, không cắt ghép clip để được hỗ trợ nếu sản phẩm có lỗi.</p></details>
           <details><summary>Đổi trả &amp; hoàn tiền</summary><ul><li>Đổi mẫu/size trong 03 ngày kể từ khi nhận hàng (sản phẩm còn tem, tag, chưa sử dụng).</li><li>Hàng lỗi, giao sai, hư hỏng khi vận chuyển: báo shop ngay, kèm video unbox liền mạch.</li><li>Hoàn tiền qua chuyển khoản trong 03–07 ngày làm việc khi được xác nhận.</li></ul><p><button class="linkbtn" data-info="policy">Xem chi tiết chính sách →</button></p></details>
         </div>
@@ -1154,7 +1154,7 @@ const POLICY_HTML = () => `<div class="policy">
 </div>`;
 function info(kind) {
   const T = {
-    ship: ["Giao hàng & thanh toán", `<ul style="padding-left:18px;line-height:1.9"><li><b>Hàng có sẵn:</b> giao 2–4 ngày. Thanh toán COD (khi nhận hàng) hoặc chuyển khoản.</li><li><b>Hàng order:</b> có hàng sau 5–7 ngày. Cọc 50% giá trị đơn hoặc chuyển khoản full.</li><li>Đơn có cả hàng sẵn và hàng order sẽ thanh toán theo hàng order.</li><li><b>Giao tiêu chuẩn:</b> phí ship 15.000đ.</li><li><b>Nội thành TP.HCM:</b> giao hoả tốc (phí theo giá book app) hoặc giao trong ngày (25.000đ = 15.000đ + 10.000đ). Chọn COD với 2 cách này thêm 5.000đ phí thu hộ.</li><li>Shop ở Bình Thạnh, TP.HCM.</li><li>Chuyển khoản: BIDV · ${BANK.acc} · ${BANK.owner}. Nội dung: ID TikTok hoặc tên Instagram.</li></ul>`],
+    ship: ["Giao hàng & thanh toán", `<ul style="padding-left:18px;line-height:1.9"><li><b>Hàng có sẵn:</b> giao 2–4 ngày. Thanh toán COD (khi nhận hàng) hoặc chuyển khoản.</li><li><b>Hàng order:</b> có hàng sau 5–7 ngày. Cọc 50% giá trị đơn hoặc chuyển khoản full.</li><li>Đơn có cả hàng sẵn và hàng order sẽ thanh toán theo hàng order.</li><li><b>Giao tiêu chuẩn:</b> miễn phí ship.</li><li><b>Nội thành TP.HCM:</b> giao hoả tốc (phí theo giá book app) hoặc giao trong ngày (phí ship 10.000đ). Chọn COD với 2 cách này thêm 5.000đ phí thu hộ.</li><li>Shop ở Bình Thạnh, TP.HCM.</li><li>Chuyển khoản: BIDV · ${BANK.acc} · ${BANK.owner}. Nội dung: ID TikTok hoặc tên Instagram.</li></ul>`],
     policy: ["Chính sách đổi trả & hoàn tiền", POLICY_HTML()],
     receive: ["Lưu ý khi nhận hàng", `<p style="line-height:1.8">Vui lòng <b>quay video kỹ, liên tục</b> từ lúc mở gói hàng đến khi kiểm tra xong sản phẩm. <b>Không cắt ghép clip</b> để shop có căn cứ hỗ trợ nếu sản phẩm bị lỗi hoặc giao nhầm.</p>`]
   }[kind];
@@ -1191,9 +1191,9 @@ async function emailOrder(subject, code, fields, file, items) {
 
 const isHCM = c => /hồ chí minh|hcm/i.test(c || "");
 const SHIPS = {
-  std: ["Giao tiêu chuẩn", "Phí ship 15.000đ"],
+  std: ["Giao tiêu chuẩn", "Miễn phí ship"],
   fast: ["Hoả tốc nội thành TP.HCM", "Phí ship theo giá book app (Grab/Ahamove…) – shop báo khi xác nhận"],
-  day: ["Giao trong ngày nội thành TP.HCM", "Phí ship 25.000đ (15.000đ + 10.000đ giao trong ngày)"]
+  day: ["Giao trong ngày nội thành TP.HCM", "Phí ship 10.000đ"]
 };
 /* Mã ưu đãi (đọc từ trang "UuDai" của Google Sheet) */
 let PROMOS = [], PROMO = null;
@@ -1210,10 +1210,10 @@ function calc(t, ship, pay) {
   const pr = PROMO ? promoCheck(PROMO, t) : null; const disc = pr && !pr.err ? pr.d : 0;
   const goods = t.total - disc;
   const fast = ship === "fast" || ship === "day";
-  const shipAdd = ship === "std" ? SHIP_STD : ship === "day" ? SHIP_STD + SHIP_SAMEDAY : 0;   // hoả tốc: báo sau
+  const shipAdd = ship === "day" ? SHIP_SAMEDAY : 0;   // tiêu chuẩn + hoả tốc: shop báo sau
   const codFee = fast && pay === "cod" ? COD_FAST_FEE : 0;
   const grand = goods + shipAdd + codFee;
-  const shipText = ship === "fast" ? "Theo giá app (báo sau)" : vnd(shipAdd);
+  const shipText = ship === "fast" ? "Theo giá app (báo sau)" : ship === "std" ? "Miễn phí" : vnd(shipAdd);
   return { shipAdd, codFee, grand, shipText, full: goods + shipAdd, disc, goods, code: disc ? pr.p.code : "", dep: Math.ceil(goods / 2 / 1000) * 1000 };
 }
 function checkout() {
@@ -1253,7 +1253,7 @@ function checkout() {
     const ship = f.querySelector("input[name=ship]:checked").value, pay = f.querySelector("input[name=pay]:checked").value;
     const c = calc(t, ship, pay);
     const ds = $('[data-paysub="deposit"]'); if (ds) ds.textContent = vnd(c.dep) + " – còn lại thanh toán khi nhận";
-    const fs = $('[data-paysub="full"]'); if (fs) fs.textContent = vnd(c.full) + (ship === "fast" ? " + phí hoả tốc báo sau" : " (đã gồm ship)");
+    const fs = $('[data-paysub="full"]'); if (fs) fs.textContent = vnd(c.full) + (ship === "fast" ? " + phí hoả tốc báo sau" : ship === "std" ? " (freeship)" : " (đã gồm ship)");
     const cs = $('[data-paysub="cod"]'); if (cs) cs.textContent = ship === "std" ? "Trả tiền mặt cho shipper" : "Trả tiền mặt cho shipper · +5.000đ phí thu hộ";
     $("#coTot").innerHTML = `${c.disc ? `<div class="sum" style="color:var(--sale)"><span>Ưu đãi ${esc(c.code)}</span><span>−${vnd(c.disc)}</span></div>` : ""}<div class="sum"><span>Phí vận chuyển</span><span>${c.shipText}</span></div>${c.codFee ? `<div class="sum"><span>Phí thu hộ COD</span><span>+${vnd(c.codFee)}</span></div>` : ""}<div class="sum total" style="margin-bottom:0"><span>Tổng cộng</span><span>${vnd(c.grand)}</span></div>${ship === "fast" ? `<div class="tiny">Chưa gồm phí hoả tốc, shop báo theo giá app khi xác nhận đơn.</div>` : ""}`;
   };
@@ -1279,7 +1279,7 @@ function placeOrder() {
   const mode = d.pay; const ship = isHCM(d.city) ? (d.ship || "std") : "std";
   const c = calc(t, ship, mode);
   const payNow = mode === "deposit" ? c.dep : mode === "full" ? c.full : 0;
-  const shipLabel = SHIPS[ship][0] + (ship === "fast" ? " (phí theo app, báo sau)" : ` (${vnd(c.shipAdd)})`);
+  const shipLabel = SHIPS[ship][0] + (ship === "fast" ? " (phí theo app, báo sau)" : ship === "std" ? " (freeship)" : ` (${vnd(c.shipAdd)})`);
   const shipTail = ship === "fast" ? " + phí hoả tốc" : "";
   const ck = toAscii(d.social).replace(/^@+/, "").replace(/[^A-Za-z0-9._ -]/g, "").trim().slice(0, 25) || code;
   const payLabel = mode === "deposit" ? `Đặt cọc 50% (${vnd(c.dep)}), còn lại ${vnd(c.grand - c.dep)}${shipTail} khi nhận hàng` : mode === "full" ? `Chuyển khoản full (${vnd(c.full)})${ship === "fast" ? ", phí hoả tốc báo sau" : ""}` : `COD – thu ${vnd(c.grand)}${c.codFee ? ` (gồm ${vnd(c.codFee)} phí COD)` : ""}${shipTail} khi giao`;
